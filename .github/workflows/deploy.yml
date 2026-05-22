@@ -38,7 +38,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Deploy to ECS
+        uses: appleboy/scp-action@v0
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: ${{ secrets.ECS_USER }}
+          key: ${{ secrets.ECS_SSH_KEY }}
+          source: docker-compose.yml
+          target: /opt/enterprise-backend/
+          overwrite: true
+
+      - name: Run deploy script
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.ECS_HOST }}

@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ghcr.io/${GITHUB_REPOSITORY:-user/repo}:latest
+    image: ghcr.io/zzyytt987/gyujfh:latest
     container_name: enterprise-backend
     restart: unless-stopped
     ports:
