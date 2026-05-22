@@ -45,20 +45,15 @@ jobs:
           username: ${{ secrets.ECS_USER }}
           key: ${{ secrets.ECS_SSH_KEY }}
           script: |
-            mkdir -p /opt/enterprise-backend/data
-            cat > /opt/enterprise-backend/docker-compose.yml << 'EOF'
-            services:
-              backend:
-                image: ghcr.io/${{ github.repository }}:latest
-                container_name: enterprise-backend
-                restart: unless-stopped
-                ports:
-                  - "8000:8000"
-                volumes:
-                  - ./data:/app/data
-            EOF
             cd /opt/enterprise-backend
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker compose pull
-            docker compose up -d --remove-orphans
+            docker pull ghcr.io/${{ github.repository }}:latest
+            docker stop enterprise-backend 2>/dev/null || true
+            docker rm enterprise-backend 2>/dev/null || true
+            docker run -d \
+              --name enterprise-backend \
+              --restart unless-stopped \
+              -p 8000:8000 \
+              -v /opt/enterprise-backend/data:/app/data \
+              ghcr.io/${{ github.repository }}:latest
             docker image prune -f
