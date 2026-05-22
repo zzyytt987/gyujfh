@@ -27,7 +27,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
@@ -38,26 +38,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Deploy to ECS
-        uses: appleboy/scp-action@v0
-        with:
-          host: ${{ secrets.ECS_HOST }}
-          username: ${{ secrets.ECS_USER }}
-          key: ${{ secrets.ECS_SSH_KEY }}
-          source: docker-compose.yml
-          target: /opt/enterprise-backend/
-          overwrite: true
-
-      - name: Run deploy script
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.ECS_HOST }}
           username: ${{ secrets.ECS_USER }}
           key: ${{ secrets.ECS_SSH_KEY }}
           script: |
+            mkdir -p /opt/enterprise-backend/data
+            cat > /opt/enterprise-backend/docker-compose.yml << 'EOF'
+            services:
+              backend:
+                image: ghcr.io/${{ github.repository }}:latest
+                container_name: enterprise-backend
+                restart: unless-stopped
+                ports:
+                  - "8000:8000"
+                volumes:
+                  - ./data:/app/data
+            EOF
             cd /opt/enterprise-backend
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose pull
