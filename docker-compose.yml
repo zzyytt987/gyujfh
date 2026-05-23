@@ -1,0 +1,9 @@
+services:
+  backend:
+    image: ghcr.io/zzyytt987/gyujfh:latest
+    container_name: enterprise-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
